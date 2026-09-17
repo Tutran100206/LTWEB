@@ -1,0 +1,77 @@
+const {chromium} = require('../target/browser-test/node_modules/playwright');
+const assert = require('node:assert/strict');
+const base = process.env.TEST_BASE_URL || 'http://localhost:8080';
+(async () => {
+    const browser = await chromium.launch({executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true});
+    const page = await browser.newPage();
+    const errors = [];
+    page.on('pageerror', error => errors.push(error.message));
+    page.on('dialog', dialog => dialog.accept());
+    const name = 'Browser ' + Date.now();
+    let cid, pid;
+    const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aJ1sAAAAASUVORK5CYII=', 'base64');
+    async function save(path, method) {
+        const response = page.waitForResponse(r => r.url().includes(path) && r.request().method() === method);
+        await page.locator('#save').click();
+        const result = await response;
+        assert.ok(result.ok(), await result.text());
+        await page.locator('#edit-modal').waitFor({state: 'hidden'});
+        return (await result.json()).body;
+    }
+    try {
+        await page.goto(base + '/admin/categories');
+        await page.locator('#add').click();
+        await page.locator('#categoryName').fill(name);
+        await page.locator('#icon').setInputFiles({name:'icon.png', mimeType:'image/png', buffer:png});
+        const category = await save('/addCategory', 'POST');
+        cid = category.categoryId;
+        const categoryRow = page.locator('#rows tr').filter({hasText:name});
+        await categoryRow.locator('.edit').click();
+        await page.waitForFunction(() => document.querySelector('#categoryName').value.startsWith('Browser'));
+        await page.locator('#categoryName').fill(name + ' edited');
+        const editedCategory = await save('/updateCategory', 'PUT');
+        assert.equal(editedCategory.icon, category.icon);
+        await page.goto(base + '/admin/products');
+        await page.locator('#add').click();
+        await page.locator('#productName').fill(name + ' product');
+        await page.locator('#quantity').fill('4');
+        await page.locator('#unitPrice').fill('125000');
+        await page.locator('#discount').fill('12.50');
+        await page.locator('#categoryId').selectOption(String(cid));
+        await page.locator('#description').fill('Kiểm tra AJAX <script>alert(1)</script>');
+        await page.locator('#imageFile').setInputFiles({name:'product.png', mimeType:'image/png', buffer:png});
+        const product = await save('/addProduct', 'POST');
+        pid = product.productId;
+        const row = page.locator('#rows tr').filter({hasText:name + ' product'});
+        await row.locator('.edit').click();
+        await page.waitForFunction(id => document.querySelector('#categoryId').value === String(id), cid);
+        assert.equal(await page.locator('#status').inputValue(), 'true');
+        assert.equal(await page.locator('#quantity').inputValue(), '4');
+        await page.locator('#status').selectOption('false');
+        await page.locator('#quantity').fill('8');
+        const edited = await save('/updateProduct', 'PUT');
+        assert.equal(edited.images, product.images);
+        assert.equal(edited.createDate, product.createDate);
+        assert.equal(edited.status, false);
+        await page.goto(base + '/admin/categories');
+        await page.locator('#rows tr').filter({hasText:name + ' edited'}).locator('.delete').click();
+        await page.locator('#page-message.alert-danger').waitFor();
+        assert.match(await page.locator('#page-message').innerText(), /sản phẩm/);
+        await page.goto(base + '/admin/products');
+        const deleted = page.waitForResponse(r => r.url().includes('/deleteProduct') && r.request().method() === 'DELETE');
+        await page.locator('#rows tr').filter({hasText:name + ' product'}).locator('.delete').click();
+        assert.equal((await deleted).status(), 200);
+        pid = null;
+        await page.goto(base + '/admin/categories');
+        const removed = page.waitForResponse(r => r.url().includes('/deleteCategory') && r.request().method() === 'DELETE');
+        await page.locator('#rows tr').filter({hasText:name + ' edited'}).locator('.delete').click();
+        assert.equal((await removed).status(), 200);
+        cid = null;
+        assert.deepEqual(errors, []);
+        console.log('PASS: Chrome AJAX Add/Edit/Delete Category + Product, upload, category select, status, preserve image/date, FK error, context path; no JS errors.');
+    } finally {
+        if (pid) await page.request.delete(base + '/api/product/deleteProduct?productId=' + pid);
+        if (cid) await page.request.delete(base + '/api/category/deleteCategory?categoryId=' + cid);
+        await browser.close();
+    }
+})().catch(e => { console.error(e); process.exit(1); });

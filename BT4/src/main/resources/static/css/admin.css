@@ -1,0 +1,6 @@
+body { background: #f5f7fa; }
+.table img, .image-preview { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; }
+.table th { white-space: nowrap; }
+.table td { vertical-align: middle; }
+.table td:last-child { white-space: nowrap; }
+.modal textarea { min-height: 100px; }
