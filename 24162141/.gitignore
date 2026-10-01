@@ -1,0 +1,7 @@
+target/
+.tools/
+.runtime/
+*.local.properties
+src/main/resources/application.properties
+docs/page-*.png
+__pycache__/

@@ -1,0 +1,10 @@
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<!DOCTYPE html><html lang="vi"><head><title>Lịch sử đặt hàng</title></head><body><h1>Lịch sử đặt hàng</h1>
+<form class="order-filter panel" method="get" action="${pageContext.request.contextPath}/orders"><label for="order-status">Trạng thái đơn hàng</label><select id="order-status" name="status"><option value="">Tất cả trạng thái</option><c:forEach items="${statuses}" var="s"><option value="${s.code}" ${selectedStatus eq s.code ? 'selected' : ''}><c:out value="${s.label}"/></option></c:forEach></select><button>Lọc đơn hàng</button></form>
+<c:if test="${empty orders}"><div class="panel"><p>Chưa có đơn hàng phù hợp với trạng thái đã chọn.</p><a href="${pageContext.request.contextPath}/products">Mua sắm ngay</a></div></c:if>
+<c:forEach items="${orders}" var="o"><article class="panel order-card" data-order-id="${o.cartId}" data-status="${o.status}"><div class="section-heading"><div><h2>Đơn <c:out value="${o.cartId}"/></h2><p>Ngày đặt: <fmt:formatDate value="${o.buyDate}" pattern="dd/MM/yyyy HH:mm"/></p></div><span class="order-status"><c:out value="${o.statusLabel}"/></span></div>
+<p>Người nhận: <c:out value="${o.recipientName}"/> · <c:out value="${o.phone}"/><br>Địa chỉ: <c:out value="${o.address}"/></p>
+<div class="table-wrap"><table><thead><tr><th>Sản phẩm</th><th>Đơn giá lúc đặt</th><th>Số lượng</th><th>Thành tiền</th></tr></thead><tbody><c:forEach items="${o.items}" var="i"><tr><td><c:out value="${i.productName}"/></td><td><fmt:formatNumber value="${i.unitPrice}" maxFractionDigits="0"/> ₫</td><td>${i.quantity}</td><td><fmt:formatNumber value="${i.subtotal}" maxFractionDigits="0"/> ₫</td></tr></c:forEach></tbody></table></div>
+<p class="price">Tổng cộng: <fmt:formatNumber value="${o.total}" maxFractionDigits="0"/> ₫</p><p>Phương thức: <c:out value="${o.paymentMethod}"/> — Thanh toán khi nhận hàng.</p></article></c:forEach></body></html>

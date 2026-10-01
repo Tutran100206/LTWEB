@@ -1,0 +1,8 @@
+<%@ page pageEncoding="UTF-8" %>
+<nav class="pagination" aria-label="Phân trang">
+<c:if test="${page > 1}"><a href="?page=${page-1}">Previous</a>
+</c:if><c:forEach begin="1" end="${pages}" var="n">
+<a class="${n == page ? 'active' : ''}" href="?page=${n}" aria-label="Trang ${n}">${n}</a>
+</c:forEach><c:if test="${page < pages}"><a href="?page=${page+1}">Next</a></c:if>
+<span>Tổng ${total} bản ghi · Trang ${page}/${pages}</span>
+</nav>

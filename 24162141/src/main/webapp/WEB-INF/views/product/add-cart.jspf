@@ -1,0 +1,5 @@
+<%@ page pageEncoding="UTF-8" %>
+<p>Tồn kho: <strong>${p.stock}</strong></p>
+<c:choose><c:when test="${p.status eq 1 and p.stock gt 0}"><c:choose><c:when test="${sessionScope.account.roleName eq 'ROLE_USER'}">
+<form class="add-cart-form" method="post" action="${pageContext.request.contextPath}/cart/add"><input type="hidden" name="csrf" value="${sessionScope.csrf}"><input type="hidden" name="productId" value="${p.productId}"><label>Số lượng<input type="number" name="quantity" min="1" max="${p.stock}" value="1" required></label><button>Thêm vào giỏ</button></form>
+</c:when><c:when test="${empty sessionScope.account}"><a class="button" href="${pageContext.request.contextPath}/login">Đăng nhập để mua</a></c:when></c:choose></c:when><c:otherwise><p class="stock-warning">Hết hàng hoặc ngừng bán</p></c:otherwise></c:choose>

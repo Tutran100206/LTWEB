@@ -1,0 +1,11 @@
+# Copy outside WAR; set JVM -Dapp.config=E:/24162141/config/application.local.properties
+db.url=jdbc:sqlserver://localhost:1433;databaseName=DE06_24162141;encrypt=true;trustServerCertificate=true
+db.username=sa
+db.password=
+mail.host=smtp.gmail.com
+mail.port=587
+mail.auth=true
+mail.starttls=true
+mail.username=
+mail.password=
+mail.from=

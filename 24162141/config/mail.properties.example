@@ -1,0 +1,8 @@
+# Put these in application.local.properties, or use MAIL_* environment variables.
+mail.host=smtp.gmail.com
+mail.port=587
+mail.auth=true
+mail.starttls=true
+mail.username=your-email@gmail.com
+mail.password=your-app-password
+mail.from=your-email@gmail.com
